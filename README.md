@@ -4,25 +4,25 @@
 
 ## Overview
 
-This is the backend API service for পরমা (Poroma), a medication reminder application designed for the Bangladesh market. The backend is built with Node.js, Express, and PostgreSQL.
+This is the backend API service for পরমা (Poroma), a medication reminder application designed for the Bangladesh market. The backend is built with Node.js, Express, TypeScript, and PostgreSQL.
 
 ## Quick Links
 
 - [Setup Guide](./SETUP.md)
 - [API Documentation](./API_DOCUMENTATION.md)
 - [Contributing Guidelines](./CONTRIBUTING.md)
-- [System Architecture Reference](../SYSTEM_ARCHITECTURE.md)
 
 ## Tech Stack
 
 | Component | Technology |
 |-----------|------------|
-| Runtime | Node.js 20.x LTS |
+| Runtime | Node.js 18.x+ |
 | Framework | Express.js 4.x |
 | Language | TypeScript 5.x |
 | ORM | Prisma 5.x |
-| Database | PostgreSQL 15.x |
-| Authentication | JWT + Refresh Tokens |
+| Database | PostgreSQL |
+| Authentication | JWT + bcryptjs |
+| Validation | Zod |
 
 ## Project Status
 
@@ -34,27 +34,108 @@ Target: MVP - Medication Alert + Refill Alert
 
 ## Getting Started
 
+### Prerequisites
+
+- Node.js >= 18.0.0
+- PostgreSQL database
+
+### Installation
+
 ```bash
-# Clone and setup
-cd poroma-backend
+# Install dependencies
 npm install
 
 # Setup environment
-cp .env.example .env
-# Edit .env with your configuration
+cp package.example.json package.json
+# Or create .env file with your configuration
+```
 
-# Initialize database
-npx prisma generate
-npx prisma migrate dev --name init
+### Database Setup
 
-# Start development server
+```bash
+# Generate Prisma client
+npm run prisma:generate
+
+# Run migrations
+npm run prisma:migrate
+
+# Seed the database (optional)
+npm run prisma:seed
+```
+
+### Development
+
+```bash
+# Start development server with hot reload
 npm run dev
 ```
 
-## API Base URL
+The server will run at `http://localhost:3000/api`
 
-- Development: `http://localhost:3000/api/v1`
-- Production: `https://api.poroma.app/api/v1` (TBD)
+### Build for Production
+
+```bash
+# Build
+npm run build
+
+# Start production server
+npm run start
+```
+
+## Project Structure
+
+```
+poroma-backend/
+├── prisma/              # Database schema and migrations
+│   ├── schema.prisma   # Database models
+│   ├── seed.ts         # Database seeding
+│   └── create-admin.ts # Admin user creation
+├── src/
+│   ├── config/         # Configuration
+│   ├── controllers/    # Request handlers
+│   ├── middleware/     # Express middleware (auth, validation, error)
+│   ├── routes/         # API routes
+│   ├── services/      # Business logic
+│   ├── types/         # TypeScript types
+│   ├── utils/         # Utilities (JWT, logger)
+│   └── validators/    # Zod validators
+├── package.json
+└── tsconfig.json
+```
+
+## API Endpoints
+
+### Authentication
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Register new user |
+| POST | `/api/auth/login` | User login |
+| GET | `/api/auth/profile` | Get current user |
+
+### Medications
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/medications` | List all medications |
+| POST | `/api/medications` | Create medication |
+| GET | `/api/medications/:id` | Get medication |
+| PUT | `/api/medications/:id` | Update medication |
+| DELETE | `/api/medications/:id` | Delete medication |
+
+### Logs
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/logs` | Get activity logs |
+| POST | `/api/logs` | Create log entry |
+
+### Analytics
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/analytics/summary` | Get medication summary |
+| GET | `/api/analytics/adherence` | Get adherence stats |
 
 ## Key Features (MVP)
 
@@ -67,6 +148,16 @@ npm run dev
 - [ ] Pharmacy Integration
 - [ ] Refill Alerts
 
+## Testing
+
+```bash
+# Run tests
+npm run test
+
+# Run tests with coverage
+npm run test:coverage
+```
+
 ## Documentation
 
 | Document | Description |
@@ -78,7 +169,6 @@ npm run dev
 ## Related Projects
 
 - [Frontend App](../poroma-frontend/) - React Native mobile application
-- [Business Plan](../BUSINESS_PLAN.md) - Project vision and strategy
 
 ## License
 

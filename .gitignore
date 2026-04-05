@@ -37,3 +37,6 @@ prisma/migrations/
 .cache/
 tmp/
 temp/
+
+# Markdown
+*.md
