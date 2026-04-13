@@ -1,10 +1,9 @@
 import { prisma } from '../config';
 
 export class AnalyticsService {
-  async trackEvent(userId: string | null, eventType: string, eventData: any, deviceInfo?: any) {
+  async trackEvent(eventType: string, eventData: any, deviceInfo?: any) {
     return prisma.analyticsEvent.create({
       data: {
-        user_id: userId,
         event_type: eventType,
         event_data: eventData,
         device_info: deviceInfo,
@@ -12,20 +11,53 @@ export class AnalyticsService {
     });
   }
 
-  async getUserStats(userId: string) {
-    const [totalMedications, totalLogs, takenLogs, skippedLogs] = await Promise.all([
-      prisma.medication.count({ where: { user_id: userId } }),
-      prisma.medicationLog.count({ where: { user_id: userId } }),
-      prisma.medicationLog.count({ where: { user_id: userId, status: 'taken' } }),
-      prisma.medicationLog.count({ where: { user_id: userId, status: 'skipped' } }),
+  async getStats() {
+    const [
+      totalEvents,
+      eventsByType,
+      eventsToday,
+      eventsThisWeek,
+      eventsThisMonth,
+    ] = await Promise.all([
+      prisma.analyticsEvent.count(),
+      prisma.analyticsEvent.groupBy({
+        by: ['event_type'],
+        _count: { event_type: true },
+        orderBy: { _count: { event_type: 'desc' } },
+        take: 20,
+      }),
+      prisma.analyticsEvent.count({
+        where: {
+          created_at: {
+            gte: new Date(new Date().setHours(0, 0, 0, 0)),
+          },
+        },
+      }),
+      prisma.analyticsEvent.count({
+        where: {
+          created_at: {
+            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+          },
+        },
+      }),
+      prisma.analyticsEvent.count({
+        where: {
+          created_at: {
+            gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+          },
+        },
+      }),
     ]);
 
     return {
-      total_medications: totalMedications,
-      total_logs: totalLogs,
-      taken: takenLogs,
-      skipped: skippedLogs,
-      adherence_rate: totalLogs > 0 ? (takenLogs / totalLogs) * 100 : 0,
+      total_events: totalEvents,
+      events_today: eventsToday,
+      events_this_week: eventsThisWeek,
+      events_this_month: eventsThisMonth,
+      top_events: eventsByType.map((e) => ({
+        event_type: e.event_type,
+        count: e._count.event_type,
+      })),
     };
   }
 }
